@@ -1,0 +1,21 @@
+# Distrobox for onelf: upstream's POSIX shell scripts packed as one
+# file per architecture. The scripts are used as they publish; the
+# only host tool they call outside POSIX and coreutils is curl, for
+# the `create --compatibility` table, and the tree carries it. The
+# container manager is not carried: distrobox takes it from PATH,
+# where the podman package installs itself.
+#
+# The control repository, onelf-pkgs/.github, bumps the sources here
+# when upstream releases and resets `release` to 1. Raise `release`
+# by hand when the recipe changes and the sources do not. Releases
+# are tagged v<distrobox version>-<release>.
+name = "distrobox"
+release = 1
+arches = ["x86_64", "aarch64"]
+self-update = true
+
+[sources.distrobox]
+version = "1.8.2.5"
+url = "https://github.com/89luca89/distrobox/archive/refs/tags/{version}.tar.gz"
+sha256 = "0c3bc4785ee3be3b89f93abb7cc0a9f60e56989e81319af140a4b60403b18f80"
+upstream = { github = "89luca89/distrobox", tag = "^([0-9.]+)$" }

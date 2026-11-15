@@ -1,0 +1,40 @@
+#!/bin/sh
+# distrobox derives everything from the directory of the invoked script:
+# the multicall dispatcher finds its subcommands beside $0, create binds
+# the distrobox-init beside itself into the container as the entrypoint,
+# and every later enter re-mounts from that recorded host path. The tree
+# this wrapper itself runs from is a per-launch mount that disappears
+# with the launch, so the scripts must run from a stable per-user mirror:
+# it is refreshed from the bundle on every launch, which keeps existing
+# containers startable across launches and bundle upgrades alike. The
+# launch tree stays on PATH behind the mirror for curl, which can only
+# resolve its libraries beside the bundle's.
+
+self=$0
+while [ -L "$self" ]; do
+    link=$(readlink "$self")
+    case $link in
+    /*) self=$link ;;
+    *) self=${self%/*}/$link ;;
+    esac
+done
+root=$(CDPATH= cd -- "$(dirname -- "$self")" && pwd)
+
+stable=${XDG_DATA_HOME:-"${HOME}/.local/share"}/onelf/distrobox/bin
+mkdir -p "$stable" || {
+    echo "cannot create the script mirror $stable" >&2
+    exit 1
+}
+for script in "$root"/bin/distrobox "$root"/bin/distrobox-*; do
+    [ -e "$script" ] || continue
+    name=${script##*/}
+    cp -p "$script" "$stable/$name.new" &&
+        mv -f "$stable/$name.new" "$stable/$name" || {
+        echo "cannot refresh $stable/$name" >&2
+        exit 1
+    }
+done
+
+PATH=$stable:$root/bin:$PATH
+export PATH
+exec "$stable/distrobox" "$@"

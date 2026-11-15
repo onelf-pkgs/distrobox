@@ -1,0 +1,29 @@
+# The onelf recipe for the assembled tree: build.sh copies this into
+# the tree root and exports what the ${...} placeholder names, which
+# onelf expands when it loads the recipe. Nothing here names this
+# machine or this architecture.
+[package]
+name = "distrobox"
+command = "distrobox-run"
+version = "${DISTROBOX_VERSION}"
+description = "A tool to manage containers on Linux"
+license = "GPL-3.0-only"
+homepage = "https://github.com/89luca89/distrobox"
+working-dir = "inherit"
+# No setuid binaries ship, but the scripts exec the host's suid
+# newuidmap through podman, which only works from the host's user
+# namespace.
+needs-setuid = true
+exclude = ["onelf.toml"]
+
+[[entrypoint]]
+name = "distrobox"
+path = "distrobox-run"
+default = true
+
+[bundle]
+strip = true
+
+[compression]
+level = 22
+payload = "stipple"
